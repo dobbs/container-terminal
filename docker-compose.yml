@@ -1,0 +1,28 @@
+consul:
+  image: progrium/consul:latest
+  command: >
+    -server
+    -bootstrap-expect 1
+    -ui-dir /ui
+  mem_limit: 256m
+  expose:
+  - 53
+  - 8300
+  - 8301
+  - 8302
+  - 8400
+  - 8500
+  - 8600
+  ports:
+  - 8500:8500
+  restart: always
+
+dnsmasq:
+  image: andyshinn/dnsmasq:2.75
+  ports:
+    - "53:53/tcp"
+    - "53:53/udp"
+  cap_add:
+    - NET_ADMIN
+  command: --address=/$DOMAIN/$DOCKER_HOST_IP
+  restart: always
