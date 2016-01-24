@@ -1,0 +1,12 @@
+{
+  "consul": "consul:8500",
+  "services": [
+    {
+      "name": "git",
+      "port": 22,
+      "health": "/usr/local/bin/git-health-check.sh",
+      "poll": 10,
+      "ttl": 25
+    }
+  ]
+}

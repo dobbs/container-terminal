@@ -26,3 +26,12 @@ dnsmasq:
     - NET_ADMIN
   command: --address=/$DOMAIN/$DOCKER_HOST_IP
   restart: always
+
+git:
+  build: git/
+  ports:
+    - "2200:22/tcp"
+  volumes:
+    - ./git/home:/home/git
+  links:
+    - consul:consul
