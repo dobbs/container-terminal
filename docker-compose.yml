@@ -31,7 +31,5 @@ git:
   build: git/
   ports:
     - "2200:22/tcp"
-  volumes:
-    - ./git/home:/home/git
   links:
     - consul:consul
