@@ -1,7 +1,8 @@
-FROM alpine:3.3
+FROM debian:jessie
 MAINTAINER Eric Dobbs <eric@dobbse.net>
 
-RUN apk --no-cache add openssh git bash curl \
+RUN apt-get update \
+ && apt-get install -y openssh-server git bash curl \
  && mkdir /var/run/sshd
 RUN printf "%s\n"\
  "UseDNS no"\
@@ -9,8 +10,9 @@ RUN printf "%s\n"\
  "ChallengeResponseAuthentication no"\
  "PermitRootLogin no"\
  >> /etc/ssh/sshd_config
-RUN (source /etc/init.d/sshd && checkconfig)
-RUN addgroup git && adduser -D -s /usr/bin/git-shell -h /home/git -G git git \
+RUN addgroup git \
+ && adduser --disabled-password --shell=/usr/bin/git-shell --home=/home/git --ingroup=git \
+    --gecos="git access" git \
  && mkdir /home/git/.ssh && chown git:git /home/git/.ssh && chmod -R 700 /home/git
 VOLUME /home/git
 
