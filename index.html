@@ -43,6 +43,32 @@ Licensed under <a href="http://creativecommons.org/licenses/by-sa/3.0" title="Cr
       </figcaption>
     </figure>
 
+
+<h1>Notes to Self</h1>
+
+<p>Documenting what I learn in detailed commit messages.  So
+might find this link helpful.</p>
+
+<p><a href="https://github.com/dobbs/container-terminal/commits/master">https://github.com/dobbs/container-terminal/commits/master</a></p>
+
+<h1>Usage</h1>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c"># Need some environment variables to make docker and docker-compose work</span>
+$ <span class="pl-c1">eval</span> <span class="pl-s"><span class="pl-pds">$(</span>docker-machine env default<span class="pl-pds">)</span></span>
+
+<span class="pl-c"># Using dnsmasq to control fake domain names.  Using $DOMAIN to</span>
+<span class="pl-c"># specify our fake domain name, and calculating the docker host's IP</span>
+<span class="pl-c"># address from $DOCKER_HOST</span>
+$ <span class="pl-k">export</span> DOMAIN=bogus  
+$ <span class="pl-k">export</span> DOCKER_HOST_IP=<span class="pl-s"><span class="pl-pds">$(</span>awk -F<span class="pl-s"><span class="pl-pds">'</span>[:/]<span class="pl-pds">'</span></span> <span class="pl-s"><span class="pl-pds">'</span>{print $4}<span class="pl-pds">'</span></span> <span class="pl-k">&lt;&lt;&lt;</span><span class="pl-s"><span class="pl-pds">"</span>$DOCKER_HOST<span class="pl-pds">"</span></span><span class="pl-pds">)</span></span>
+
+<span class="pl-c"># Come Sail Away!</span>
+$ docker-compose up -d
+
+<span class="pl-c"># See if DNS is working</span>
+$ [[ <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$DOCKER_HOST_IP</span><span class="pl-pds">"</span></span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-s"><span class="pl-pds">$(</span>dig +short @<span class="pl-smi">$DOCKER_HOST_IP</span> wat.<span class="pl-smi">$DOMAIN</span><span class="pl-pds">)</span></span><span class="pl-pds">"</span></span> ]]
+$ [[ <span class="pl-smi">$?</span> <span class="pl-k">-eq</span> 0 ]] <span class="pl-k">&amp;&amp;</span> <span class="pl-c1">echo</span> BING <span class="pl-k">||</span> <span class="pl-c1">echo</span> SAD_TROMBONE</pre></div>
+
         </section>
 
         <footer>
