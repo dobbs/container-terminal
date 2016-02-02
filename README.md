@@ -36,20 +36,23 @@ $ [[ $? -eq 0 ]] && echo BING || echo SAD_TROMBONE
 
 # Serivces #
 
-## git ##
+## git and gitrun ##
+
+The gitrun service will quickly become one of my favorite new tricks.
+Basically, it enables easy modification of the filesystem of the
+primary git service.
 
 Setting up ssh credentials
 ```
 $ ssh-keygen -t ed25519 -b 384
-$ <~/.ssh/id_ed25519.pub docker run --rm -i --user=git --volumes-from=containerterminal_git_1 containerterminal_git bash -c 'cat >> /home/git/.ssh/authorized_keys && chmod 600 /home/git/.ssh/authorized_keys'
+$ <~/.ssh/id_ed25519.pub docker-compose run --rm gitrun bash -c 'cat >> .ssh/authorized_keys && chmod 600 .ssh/authorized_keys'
 $ ssh -i ~/.ssh/id_ed25519 -p 2200 git@$DOCKER_HOST_IP
 ```
 
 Proof of concept for copying a repository to the service:
 ```
 $ git clone --bare . ~/tmp/container-terminal.git
-$ tar c -C ~/tmp containter-terminal.git | docker run --rm -i -w
-/home/git -u git --volumes-from=containterterminal_git_1 containerterminal_git tar x
+$ tar c -C ~/tmp containter-terminal.git | docker-compose run --rm gitrun tar x
 $ git remote add local ssh://git@$DOCKER_HOST_IP:2200/~/container-terminal.git
 $ git fetch local
 ```
