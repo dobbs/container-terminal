@@ -43,16 +43,31 @@ Basically, it enables easy modification of the filesystem of the
 primary git service.
 
 Setting up ssh credentials
-```
+```bash
 $ ssh-keygen -t ed25519 -b 384
 $ <~/.ssh/id_ed25519.pub docker-compose run --rm gitrun bash -c 'cat >> .ssh/authorized_keys && chmod 600 .ssh/authorized_keys'
 $ ssh -i ~/.ssh/id_ed25519 -p 2200 git@$DOCKER_HOST_IP
 ```
 
 Proof of concept for copying a repository to the service:
-```
+```bash
 $ git clone --bare . ~/tmp/container-terminal.git
 $ tar c -C ~/tmp containter-terminal.git | docker-compose run --rm gitrun tar x
 $ git remote add local ssh://git@$DOCKER_HOST_IP:2200/~/container-terminal.git
 $ git fetch local
+```
+
+
+Sad Panda
+=========
+
+Most recent docker toolbox, as of 2016-02 includes a docker-compose
+that is broken on Late 2010 MacBook Air.
+
+https://github.com/docker/compose/issues/1885
+
+The advertised work around did work for me:
+```bash
+brew install python
+pip install docker-compose
 ```
