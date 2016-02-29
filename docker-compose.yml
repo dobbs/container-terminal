@@ -1,41 +1,44 @@
-consul:
-  image: progrium/consul:latest
-  command: >
-    -server
-    -bootstrap-expect 1
-    -ui-dir /ui
-  mem_limit: 256m
-  expose:
-  - 53
-  - 8300
-  - 8301
-  - 8302
-  - 8400
-  - 8500
-  - 8600
-  ports:
-  - 8500:8500
-  restart: always
+version: '2'
 
-dnsmasq:
-  image: andyshinn/dnsmasq:2.75
-  ports:
-    - "53:53/tcp"
-    - "53:53/udp"
-  cap_add:
-    - NET_ADMIN
-  command: --address=/$DOMAIN/$DOCKER_HOST_IP
-  restart: always
+services:
+  consul:
+    image: progrium/consul:latest
+    command: >
+      -server
+      -bootstrap-expect 1
+      -ui-dir /ui
+    mem_limit: 256m
+    expose:
+    - 53
+    - 8300
+    - 8301
+    - 8302
+    - 8400
+    - 8500
+    - 8600
+    ports:
+    - 8500:8500
+    restart: always
 
-git:
-  build: git/
-  ports:
-    - "2200:22/tcp"
+  dnsmasq:
+    image: andyshinn/dnsmasq:2.75
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    cap_add:
+      - NET_ADMIN
+    command: --address=/$DOMAIN/$DOCKER_HOST_IP
+    restart: always
 
-gitrun:
-  build: git/
-  volumes_from:
-    - git
-  user: git
-  working_dir: /home/git
-  command: ["true"]
+  git:
+    build: git/
+    ports:
+      - "2200:22/tcp"
+
+  gitrun:
+    build: git/
+    volumes_from:
+      - git
+    user: git
+    working_dir: /home/git
+    command: ["true"]
