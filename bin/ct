@@ -1,0 +1,22 @@
+#!/bin/bash
+
+language=$1
+shift
+
+usage() {
+  cat <<EOF
+usage: $(basename $0) <language> [command]
+
+  languages:
+    coffee
+    ruby
+EOF
+}
+
+<<<"$language" egrep -q '^(ruby|coffee)$'
+if [ $? -ne 0 ]; then
+  usage
+  exit 1
+else
+  exec docker-compose --file $language.yml run --rm $language $@
+fi
