@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  ruby:
+    build: ruby/
+    volumes:
+      - ruby:/usr/src/app
+      - bundle:/usr/local/bundle
+
+volumes:
+  ruby:
+    driver: local
+  bundle:
+    driver: local
