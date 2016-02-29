@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  coffee:
+    build: coffee/
+    volumes:
+      - coffee:/usr/src/app
+
+volumes:
+  coffee:
+    driver: local

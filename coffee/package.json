@@ -1,0 +1,14 @@
+{
+  "name": "ct-mug",
+  "version": "0.0.1",
+  "description": "container-terminal's container for coffee-script experiments",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eric Dobbs",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "coffee-script": "^1.10.0"
+  }
+}
