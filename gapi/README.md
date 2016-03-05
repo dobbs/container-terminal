@@ -1,0 +1,70 @@
+This experiment combines Docker and Docker Compose with coffescript to explore Google Drive APIs.
+
+Google offers a Node.js Quickstart which I'm modifying in a few ways:
+https://developers.google.com/drive/v3/web/quickstart/nodejs
+
+Follow step 1 to set up your own developer account and download `client_secret.json`.  Then put it in your container volume:
+```
+<client_secret.json ct gapi tee client_secret.json > /dev/null
+```
+
+First, we've gotta get our `ct` command accessible for this example to work.  Here's how:
+
+```
+PATH=$(pwd)/bin:$PATH
+```
+
+Second, we've gotta create the Docker image that our `gapi` service needs.
+
+```
+docker-compose --file coffee.yml build
+```
+
+Now returning to the quickstart, run these two, slightly modified commands from step 2:
+
+```
+ct gapi npm install googleapis --save
+ct gapi npm install google-auth-library --save
+```
+
+As a slight diversion, here's a quick confirmation that those commands are getting persisted inside the container volume.  Run this command:
+
+```
+ct gapi cat package.json 
+```
+
+At the bottom of the output from that command you should see this:
+```
+"dependencies": {
+ "coffee-script": "^1.10.0",
+ "google-auth-library": "^0.9.7",
+ "googleapis": "^2.1.7"
+}
+```
+
+That persistance is one of the reasons Docker Compose is cool.  It's a pretty light bit of configuration to create a container volume and a service which uses the container volume for persistent storage.  Taking the time to really understand how this works, this aspect of Docker Compose, has been one of the most helpful ways for me to get my own head around Docker and how to apply containerization to my own software puzzles.
+
+
+Returning again to the quickstart, I have ported their sample to `quickstart.coffee`, just slightly modified to use the `/usr/src/app` folder that our container uses as its WORKDIR.
+
+Here's how I copy that file into the container volume:
+
+```
+<gapi/quickstart.coffee ct gapi tee quickstart.coffee
+```
+
+For step 4 of the quickstart, run this command:
+
+```
+cg gapi coffee quickstart.coffee
+```
+
+The first time through step 4, the quickstart guides you to take a few steps with your web browser to permit this little program to access data about your own Google Drive account.  But it's worth running it a second time to notice that the permission you just granted gets persisted in the container volume too.
+
+As a further exercise in exploring Docker, try the commad below to poke around inside the container.  You can test the persistance inside the container by creating files both inside and outside of `/usr/src/app`.  Then exit the shell within and re-enter it and see which files are there the second time around.
+
+```
+ct gapi bash
+```
+
+This still feels like early days in my own learning curve for containerization.  But one of the things I like, so far, is thinking about what parts of the filesystem I want to perist and where I want the container to reset itself to a clean state.
