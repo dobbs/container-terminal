@@ -1,22 +1,29 @@
 #!/bin/bash
 
-language=$1
+service=${1:-usage}
 shift
 
-usage() {
+known_services() {
   cat <<EOF
-usage: $(basename $0) <language> [command]
-
-  languages:
     coffee
     ruby
+    gapi
 EOF
 }
 
-<<<"$language" egrep -q '^(ruby|coffee)$'
+usage() {
+  cat <<EOF
+usage: $(basename $0) <service> [command...]
+
+  services:
+$(known_services)
+EOF
+}
+
+known_services | grep -q $service
 if [ $? -ne 0 ]; then
   usage
   exit 1
 else
-  exec docker-compose --file $language.yml run --rm $language $@
+  exec docker-compose --file $service.yml run --rm $service $@
 fi

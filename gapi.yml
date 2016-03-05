@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  gapi:
+    image: containerterminal_coffee:latest
+    volumes:
+      - google:/usr/src/app
+
+volumes:
+  google:
+    driver: local
