@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  jenkins:
+    image: jenkins:1.642.2
+    ports:
+      - 8080:8080
+    volumes:
+      - jenkins:/var/jenkins_home
+
+volumes:
+  jenkins:
+    driver: local

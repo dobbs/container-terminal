@@ -8,6 +8,7 @@ known_services() {
     coffee
     ruby
     gapi
+    jenkins
 EOF
 }
 
@@ -25,5 +26,5 @@ if [ $? -ne 0 ]; then
   usage
   exit 1
 else
-  exec docker-compose --file $service.yml run --rm $service $@
+  exec docker-compose --file $service.yml run --service-ports --rm $service $@
 fi
