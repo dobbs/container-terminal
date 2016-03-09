@@ -1,36 +1,46 @@
 This experiment combines Docker and Docker Compose with coffescript to explore Google Drive APIs.
 
-Google offers a Node.js Quickstart which I'm modifying in a few ways:
-https://developers.google.com/drive/v3/web/quickstart/nodejs
-
-Follow step 1 to set up your own developer account and download `client_secret.json`.  Then put it in your container volume:
-```
-<client_secret.json ct gapi tee client_secret.json > /dev/null
-```
-
-First, we've gotta get our `ct` command accessible for this example to work.  Here's how:
+First, add `bin` to $PATH to enable our `ct` command:
 
 ```
 PATH=$(pwd)/bin:$PATH
 ```
 
-Second, we've gotta create the Docker image that our `gapi` service needs.
+Second, build the Docker image that our `gapi` service needs:
 
 ```
 docker-compose --file coffee.yml build
 ```
 
-Now returning to the quickstart, run these two, slightly modified commands from step 2:
+Google offers a Node.js Quickstart which I'm modifying in a few ways:
+https://developers.google.com/drive/v3/web/quickstart/nodejs
+
+Follow step 1 to set up your own developer account and download `client_secret.json`.  Then put it in your container volume:
+
+```
+<client_secret.json ct gapi tee client_secret.json > /dev/null
+```
+
+Maybe worth a diversion to explain what just happened.  `ct` is just a wrapper around `docker-compose` to reduce the amount we have to type.  The above expands to:
+
+```
+<client_secret.json docker-compose --file gapi.yml run --rm gapi tee client_secret.json > /dev/null
+```
+
+We use a standard shell input redirection to put the contents of `client_secret.json` into STDIN for `docker-compose`.  `gapi.yml` maps a container volume into the Docker WORKDIR.  And the command we pass to the container uses `tee` to write STDIN to a file named `client_secret.json` in the WORKDIR inside the container.  Because WORKDIR is mapped to the container volume, the `client_secret.json` will persist between runs of `docker-compose`.  In effect, we've used plain old shell tricks to copy files into container volume.  I'm sure there are other ways to do it, but we're going to be using similar tricks in the steps to follow, so understanding this example may be helpful.
+
+Returning to the quickstart, run these two, slightly modified commands
+from step 2:
 
 ```
 ct gapi npm install googleapis --save
 ct gapi npm install google-auth-library --save
 ```
 
-As a slight diversion, here's a quick confirmation that those commands are getting persisted inside the container volume.  Run this command:
+As a slight diversion, confirm that those commands are getting persisted inside the container volume.  Run this command:
 
 ```
-ct gapi cat package.json 
+ct gapi cat package.json
 ```
 
 At the bottom of the output from that command you should see this:
@@ -42,12 +52,11 @@ At the bottom of the output from that command you should see this:
 }
 ```
 
-That persistance is one of the reasons Docker Compose is cool.  It's a pretty light bit of configuration to create a container volume and a service which uses the container volume for persistent storage.  Taking the time to really understand how this works, this aspect of Docker Compose, has been one of the most helpful ways for me to get my own head around Docker and how to apply containerization to my own software puzzles.
-
+That persistance is one of the reasons Docker Compose is cool and it's basically the same mechanism I described when copying `client_secret.json` into the container above.  It's a pretty light bit of configuration to create a container volume and a service which uses the container volume for persistent storage.  Taking the time to really understand how this works, this aspect of Docker Compose, has been one of the most helpful ways for me to get my own head around Docker and how to apply containerization to my own software puzzles.
 
 Returning again to the quickstart, I have ported their sample to `quickstart.coffee`, just slightly modified to use the `/usr/src/app` folder that our container uses as its WORKDIR.
 
-Here's how I copy that file into the container volume:
+We use the by-now-familiar trick to copy that file into the container volume:
 
 ```
 <gapi/quickstart.coffee ct gapi tee quickstart.coffee
