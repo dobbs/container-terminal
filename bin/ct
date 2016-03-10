@@ -1,30 +1,13 @@
 #!/bin/bash
 
-service=${1:-usage}
-shift
-
-known_services() {
-  cat <<EOF
-    coffee
-    ruby
-    gapi
-    jenkins
-EOF
-}
-
-usage() {
-  cat <<EOF
-usage: $(basename $0) <service> [command...]
-
-  services:
-$(known_services)
-EOF
-}
-
-known_services | grep -q $service
-if [ $? -ne 0 ]; then
-  usage
-  exit 1
+if [ -f "$1.yml" ]; then
+  config=$1.yml
+  shift
+elif [ -f "$1" ]; then
+  config=$1
+  shift
 else
-  exec docker-compose --file $service.yml run --service-ports --rm $service $@
+  config="docker-compose.yml"
 fi
+
+exec docker-compose -f $config $@
