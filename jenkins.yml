@@ -7,7 +7,24 @@ services:
       - 8080:8080
     volumes:
       - jenkins:/var/jenkins_home
+  server:
+    build: jenkins-server/
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - server:/var/jenkins_home
+  node:
+    build: jenkins-node/
+    volumes:
+      - node:/var/jenkins_home
+    ports:
+      - 22/tcp
 
 volumes:
   jenkins:
+    driver: local
+  server:
+    driver: local
+  node:
     driver: local

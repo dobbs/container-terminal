@@ -1,0 +1,23 @@
+FROM jenkins:1.642.2
+
+RUN printf "%s\n"\
+  "matrix-project:1.6" \
+  "authentication-tokens:1.2" \
+  "matrix-auth:1.1" \
+  "credentials:1.25" \
+  "script-security:1.13" \
+  "docker-build-step:1.34" \
+  "external-monitor-job:1.4" \
+  "docker-commons:1.3.1" \
+  "durable-task:1.8" \
+  "docker-custom-build-environment:1.6.5" \
+  "antisamy-markup-formatter:1.1" \
+  "icon-shim:2.0.3" \
+  "docker-plugin:0.16.0" \
+  "scm-api:1.0" \
+  "ssh-credentials:1.11" \
+  "ssh-slaves:1.9" \
+  "git:2.4.2" \
+  "git-client:1.19.6" \
+  > /usr/share/jenkins/ref/plugins.txt \
+ && /usr/local/bin/plugins.sh /usr/share/jenkins/ref/plugins.txt
