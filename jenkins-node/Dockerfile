@@ -14,6 +14,11 @@ RUN apt-get update \
  && mkdir "$JENKINS_HOME/.ssh" \
  && chown jenkins:jenkins "$JENKINS_HOME/.ssh" \
  && chmod -R 700 "$JENKINS_HOME/.ssh"
+RUN curl -sSL https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 -o /bin/docker \
+ && curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64\
+    -o /bin/docker-compose \
+ && chmod +x /bin/docker /bin/docker-compose \
+ && adduser jenkins users
 ENTRYPOINT ["/bin/tini", "--"]
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
