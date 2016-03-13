@@ -18,7 +18,7 @@ https://developers.google.com/drive/v3/web/quickstart/nodejs
 Follow step 1 to set up your own developer account and download `client_secret.json`.  Then put it in your container volume:
 
 ```
-<client_secret.json ct gapi tee client_secret.json > /dev/null
+<client_secret.json ct gapi gapi tee client_secret.json > /dev/null
 ```
 
 Maybe worth a diversion to explain what just happened.  `ct` is just a wrapper around `docker-compose` to reduce the amount we have to type.  The above expands to:
@@ -33,14 +33,14 @@ Returning to the quickstart, run these two, slightly modified commands
 from step 2:
 
 ```
-ct gapi npm install googleapis --save
-ct gapi npm install google-auth-library --save
+ct gapi gapi npm install googleapis --save
+ct gapi gapi npm install google-auth-library --save
 ```
 
 As a slight diversion, confirm that those commands are getting persisted inside the container volume.  Run this command:
 
 ```
-ct gapi cat package.json
+ct gapi gapi cat package.json
 ```
 
 At the bottom of the output from that command you should see this:
@@ -59,7 +59,7 @@ Returning again to the quickstart, I have ported their sample to `quickstart.cof
 We use the by-now-familiar trick to copy that file into the container volume:
 
 ```
-<gapi/quickstart.coffee ct gapi tee quickstart.coffee
+<gapi/quickstart.coffee ct gapi gapi tee quickstart.coffee
 ```
 
 For step 4 of the quickstart, run this command:
@@ -73,7 +73,7 @@ The first time through step 4, the quickstart guides you to take a few steps wit
 As a further exercise in exploring Docker, try the commad below to poke around inside the container.  You can test the persistance inside the container by creating files both inside and outside of `/usr/src/app`.  Then exit the shell within and re-enter it and see which files are there the second time around.
 
 ```
-ct gapi bash
+ct gapi gapi bash
 ```
 
 This still feels like early days in my own learning curve for containerization.  But one of the things I like, so far, is thinking about what parts of the filesystem I want to perist and where I want the container to reset itself to a clean state.
