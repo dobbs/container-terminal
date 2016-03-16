@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  server:
+    build: .
+    ports:
+      - "2200:22/tcp"
+    volumes:
+      - server:/home/git
+
+volumes:
+  server:
+    driver: local

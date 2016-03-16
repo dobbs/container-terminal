@@ -4,7 +4,7 @@ MAINTAINER Eric Dobbs <eric@dobbse.net>
 ENV TINI_VERSION v0.9.0
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-server \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
  && mkdir /var/run/sshd \
  && printf "%s\n"\
   "UseDNS no"\

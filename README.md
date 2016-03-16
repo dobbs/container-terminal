@@ -13,50 +13,93 @@ might find this link helpful.
 
 https://github.com/dobbs/container-terminal/commits/master
 
-Usage
-=====
+The Core Mechanic
+=================
 
-```bash
-# Need some environment variables to make docker and docker-compose work
-$ eval $(docker-machine env default)
+Containers excel at wrapping a single *process* with a complete and
+predictable environment.  Processes themselves come in two flavors:
+single-use commands and long-running, daemonized services.  After some
+initial experimentation, I'm settling in on a common organizational
+pattern and common usage pattern for experiments in containing
+processes.
 
-# Using dnsmasq to control fake domain names.  Using $DOMAIN to
-# specify our fake domain name, and calculating the docker host's IP
-# address from $DOCKER_HOST
-$ export DOMAIN=bogus  
-$ export DOCKER_HOST_IP=$(awk -F'[:/]' '{print $4}' <<<"$DOCKER_HOST")
+The general pattern creates a container image and a container volume
+which I can use for both kinds of processes.  In one invokation, I
+launch the daemonized service.  In other invoations I use the same
+configuration to create single-use containers which share the
+supporting container volume.  The single-use commands allow
+modification of the files and folders used by the deamonized service.
 
-# Come Sail Away!
-$ docker-compose up -d
+The `git` experiment will serve as a representative example to explain
+the patterns.  The experiment wraps sshd into a specialized git
+server.  With a `docker-compose.yml` file, I define a container and a
+related volume for the container's persistent storage.
 
-# See if DNS is working
-$ [[ "$DOCKER_HOST_IP" == "$(dig +short @$DOCKER_HOST_IP wat.$DOMAIN)" ]]
-$ [[ $? -eq 0 ]] && echo BING || echo SAD_TROMBONE
+It's a simple service, with a correspondingly simple file structure:
+
+```
+git/
+  Dockerfile
+  docker-compose.yml
 ```
 
-# Serivces #
+Even the `docker-compose.yml` is pretty simple:
 
-## git and gitrun ##
+```
+version: '2'
 
-The gitrun service will quickly become one of my favorite new tricks.
-Basically, it enables easy modification of the filesystem of the
-primary git service.
+services:
+  server:
+    build: .
+    ports:
+      - "2200:22/tcp"
+    volumes:
+      - server:/home/git
 
-Setting up ssh credentials
+volumes:
+  server:
+    driver: local
+```
+
+Dockerfile holds a bit more complexity, but essentially creates a git
+user and runs sshd.
+
+Here's the invokation that launches the long-running process:
+```bash
+$ docker-compose up -d
+```
+
+The next invokation uses a single-use container to set up ssh
+credentials for use by the long-running process:
+
 ```bash
 $ ssh-keygen -t ed25519 -b 384
-$ <~/.ssh/id_ed25519.pub docker-compose run --rm gitrun bash -c 'cat >> .ssh/authorized_keys && chmod 600 .ssh/authorized_keys'
+$ <~/.ssh/id_ed25519.pub docker-compose run --user git --rm git tee .ssh/authorized_keys
+```
+
+Here I can verify that they're working:
+
+```bash
+$ export DOCKER_HOST_IP=$(awk -F'[:/]' '{print $4}' <<<"$DOCKER_HOST")
 $ ssh -i ~/.ssh/id_ed25519 -p 2200 git@$DOCKER_HOST_IP
 ```
 
-Proof of concept for copying a repository to the service:
+And apply a couple more single-use processes to actually use the git
+service as a remote git repository
+
 ```bash
 $ git clone --bare . ~/tmp/container-terminal.git
-$ tar c -C ~/tmp containter-terminal.git | docker-compose run --rm gitrun tar x
+$ tar c -C ~/tmp containter-terminal.git | docker-compose run --user git --rm git tar x
 $ git remote add local ssh://git@$DOCKER_HOST_IP:2200/~/container-terminal.git
 $ git fetch local
 ```
 
+With a combination of `Dockerfile` and `docker-compose.yml` I can
+create little containerized digital ecosystems for experimenting with
+all manner of new tools and languages and technologies.  Combining
+container volumes with daemonized processes and single-use processes I
+can explore the digital ecosystems and gradually build up an
+understanding of how to connect and coordinate and orchestrate them.
 
 Sad Panda
 =========

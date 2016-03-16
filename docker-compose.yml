@@ -29,16 +29,3 @@ services:
       - NET_ADMIN
     command: --address=/$DOMAIN/$DOCKER_HOST_IP
     restart: always
-
-  git:
-    build: git/
-    ports:
-      - "2200:22/tcp"
-
-  gitrun:
-    build: git/
-    volumes_from:
-      - git
-    user: git
-    working_dir: /home/git
-    command: ["true"]
