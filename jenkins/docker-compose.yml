@@ -2,7 +2,9 @@ version: '2'
 
 services:
   server:
-    build: jenkins-server/
+    build:
+      context: .
+      dockerfile: Dockerfile-server
     ports:
       - 8080:8080
       - 50000:50000
@@ -10,7 +12,9 @@ services:
       - server:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
   node:
-    build: jenkins-node/
+    build:
+      context: .
+      dockerfile: Dockerfile-node
     volumes:
       - node:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
