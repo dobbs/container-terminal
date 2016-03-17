@@ -2,7 +2,7 @@ version: '2'
 
 services:
   gapi:
-    image: containerterminal_coffee:latest
+    image: coffee_coffee:latest
     volumes:
       - google:/usr/src/app
 

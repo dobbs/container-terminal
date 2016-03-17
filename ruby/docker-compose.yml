@@ -2,7 +2,7 @@ version: '2'
 
 services:
   ruby:
-    build: ruby/
+    build: .
     volumes:
       - ruby:/usr/src/app
       - bundle:/usr/local/bundle

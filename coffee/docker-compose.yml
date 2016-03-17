@@ -2,7 +2,7 @@ version: '2'
 
 services:
   coffee:
-    build: coffee/
+    build: .
     volumes:
       - coffee:/usr/src/app
 
