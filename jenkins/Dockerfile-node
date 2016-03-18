@@ -3,21 +3,27 @@ FROM jenkins:1.642.2
 USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-server \
- && rm -rf /var/lib/apt/lists/* \
- && mkdir /var/run/sshd \
+ && rm -rf /var/lib/apt/lists/*
+
+# install docker-compose
+RUN curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64\
+    -o /usr/bin/docker-compose \
+ && chmod +x /usr/bin/docker-compose
+
+# create .ssh for jenkins user
+RUN adduser jenkins users \
+ && mkdir "$JENKINS_HOME/.ssh" \
+ && chown jenkins:jenkins "$JENKINS_HOME/.ssh" \
+ && chmod -R 700 "$JENKINS_HOME/.ssh"
+
+# setup sshd
+RUN mkdir /var/run/sshd \
  && printf "%s\n"\
   "UseDNS no"\
   "PasswordAuthentication no"\
   "ChallengeResponseAuthentication no"\
   "PermitRootLogin no"\
-  >> /etc/ssh/sshd_config \
- && mkdir "$JENKINS_HOME/.ssh" \
- && chown jenkins:jenkins "$JENKINS_HOME/.ssh" \
- && chmod -R 700 "$JENKINS_HOME/.ssh"
-RUN curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64\
-    -o /bin/docker-compose \
- && chmod +x /bin/docker /bin/docker-compose \
- && adduser jenkins users
+  >> /etc/ssh/sshd_config
 ENTRYPOINT ["/bin/tini", "--"]
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
