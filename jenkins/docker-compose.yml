@@ -11,6 +11,7 @@ services:
     volumes:
       - server:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
   node:
     build:
       context: .
@@ -18,6 +19,7 @@ services:
     volumes:
       - node:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
     ports:
       - 22/tcp
 
