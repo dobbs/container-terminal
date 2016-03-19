@@ -30,7 +30,7 @@ As a slight diversion, confirm that those commands are getting persisted inside 
 docker-compose run --rm gapi cat package.json
 ```
 
-At the bottom of the output from that command you should see this:
+At the bottom of the output from that command you should see something like this:
 ```
 "dependencies": {
  "coffee-script": "^1.10.0",
