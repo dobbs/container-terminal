@@ -5,17 +5,25 @@ cd "$SCRIPT_PATH/.."
 
 (cd ../coffee && docker-compose build)
 
-for file in client_secret.json quickstart.coffee; do
-cat $file | docker-compose run --rm gapi tee $file;
-done
+<client_secret.json docker-compose run --rm gapi tee client_secret.json
+<quickstart.coffee docker-compose run --rm gapi tee quickstart.coffee
 
-installed_re="$(
+wanted_packages="coffee-script
+gcloud
+google-auth-library
+googleapis
+"
+
+already_installed_re="$(
 docker-compose run --rm gapi cat package.json |
 jq -r '.dependencies | keys | "(" + join("|") + ")"'
 )"
 
-printf "%s\n" "coffee-script" "gloud" "google-auth-library" "googleapis" |
-egrep -v $installed_re |
-xargs -I % docker-compose run --rm gapi npm install % --save
+echo -e "Wanted Packages:\n$wanted_packages"
+set -x
+<<<"$wanted_packages" egrep -v $already_installed_re | while read pkg; do
+  docker-compose run --rm gapi npm install $pkg --save
+done
+set +x
 
 exec docker-compose run --rm gapi coffee quickstart.coffee

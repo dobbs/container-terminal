@@ -21,7 +21,8 @@ Returning to the quickstart, run these two, slightly modified commands
 from step 2:
 
 ```
-printf "%s\n" googleapis google-auth-library | xargs -I{} docker-compose run --rm gapi npm install {} --save
+docker-compose run --rm gapi npm install googleapis --save  
+docker-compose run --rm gapi npm install google-auth-library --save
 ```
 
 As a slight diversion, confirm that those commands are getting persisted inside the container volume.  Run this command:
