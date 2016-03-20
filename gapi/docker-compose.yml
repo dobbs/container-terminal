@@ -5,7 +5,17 @@ services:
     image: coffee_coffee:latest
     volumes:
       - google:/usr/src/app
-
+  gcloud:
+    build:
+      context: .
+      dockerfile: Dockerfile-gcloud
+    volumes:
+      - gcloud:/.config
+      - repo:/default
 volumes:
   google:
+    driver: local
+  gcloud:
+    driver: local
+  repo:
     driver: local
