@@ -11,6 +11,13 @@ services:
     volumes:
       - server:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile-cli
+    volumes:
+      - server:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
   node:
     build:
       context: .

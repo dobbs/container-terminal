@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd /jenkins
+server_id=$(docker-compose ps -q server)
+running=$(docker inspect --format={{.State.Running}} $server_id)
+if [ "$running" == "false" ]; then
+  echo "jenkins server is not running"
+  exit 1
+fi
+
+ip_address=$(docker inspect --format="{{(index .NetworkSettings.Networks .HostConfig.NetworkMode).IPAddress}}" $server_id)
+
+export JENKINS_URL="http://$ip_address:8080"
+exec java -jar ~jenkins/war/WEB-INF/jenkins-cli.jar $@
