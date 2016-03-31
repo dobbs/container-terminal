@@ -5,10 +5,11 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-server \
  && rm -rf /var/lib/apt/lists/*
 
-# install docker-compose
-RUN curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64\
-    -o /usr/bin/docker-compose \
- && chmod +x /usr/bin/docker-compose
+# install docker & docker-compose
+RUN curl -sSL https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 -o /bin/docker \
+ && curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64\
+    -o /bin/docker-compose \
+ && chmod +x /bin/docker /bin/docker-compose
 
 # create .ssh for jenkins user
 RUN adduser jenkins users \
