@@ -1,0 +1,4 @@
+FROM scratch
+EXPOSE 8200
+COPY vault-command /vault
+ENTRYPOINT ["/vault"]

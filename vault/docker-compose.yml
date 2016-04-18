@@ -1,0 +1,9 @@
+version: "2"
+
+services:
+  builder:
+    build: .
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  vault:
+    image: local/vault:0.5.2
