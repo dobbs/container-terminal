@@ -1,4 +1,5 @@
 FROM scratch
 EXPOSE 8200
 COPY vault-command /vault
-ENTRYPOINT ["/vault"]
+COPY tini /tini
+ENTRYPOINT ["/tini", "--", "/vault"]
