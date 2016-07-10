@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+  jupyter:
+    build:
+      context: .
+      dockerfile: jupyter-Dockerfile
+    volumes:
+      - notebooks:/opt/notebooks
+    ports:
+      - "8888:8888"
+
+volumes:
+  notebooks:
+    driver: local
