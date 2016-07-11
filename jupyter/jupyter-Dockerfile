@@ -2,6 +2,4 @@ FROM continuumio/anaconda:4.1.0
 RUN mkdir /opt/notebooks
 VOLUME /opt/notebooks
 RUN conda install jupyter -y --quiet
-CMD jupyter notebook\
- --notebook-dir=/opt/notebooks\
- --ip='*' --port=8888 --no-browser
+CMD jupyter notebook

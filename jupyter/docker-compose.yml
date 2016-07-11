@@ -6,9 +6,16 @@ services:
       context: .
       dockerfile: jupyter-Dockerfile
     volumes:
-      - notebooks:/opt/notebooks
+      - "notebooks:/opt/notebooks"
+      - "./jupyter_notebook_config.py:/root/.jupyter/jupyter_notebook_config.py"
+  nginx:
+    image: nginx:1.10.1
+    volumes:
+      - "./nginx-jupyter.conf:/etc/nginx/conf.d/default.conf"
     ports:
-      - "8888:8888"
+      - "80:80"
+    depends_on:
+      - jupyter
 
 volumes:
   notebooks:

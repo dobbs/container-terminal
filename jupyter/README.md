@@ -3,7 +3,7 @@
 ```bash
 $ docker-compose up -d
 $ IP=$(docker-machine inspect --format='{{.Driver.IPAddress}}')
-$ open -a Safari http://$IP:8888/
+$ open -a Safari http://$IP/jupyter
 ```
 
 http://pandas.pydata.org/pandas-docs/stable/10min.html
