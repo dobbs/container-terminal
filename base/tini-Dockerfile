@@ -1,0 +1,21 @@
+FROM buildpack-deps:jessie
+MAINTAINER Eric Dobbs <eric@dobbse.net>
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends locales
+RUN > /etc/default/locale printf "%s\n" \
+  LANGUAGE="en_US.UTF-8" \
+  LANG="en_US.UTF-8" \
+  LC_ALL="en_US.UTF-8"
+RUN locale-gen en_US.UTF-8 \
+ && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+
+ARG TINI_VERSION=v0.9.0
+RUN curl -Lo /usr/local/bin/tini \
+  https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini
+RUN curl -Lo /usr/local/bin/tini.asc \
+  https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc
+RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 0527A9B7 \
+ && gpg --verify /usr/local/bin/tini.asc \
+ && chmod +x /usr/local/bin/tini
+ENTRYPOINT ["tini", "--"]
