@@ -1,0 +1,12 @@
+FROM tini:0.9.0
+
+RUN apt-get install -y --no-install-recommends openssh-server
+RUN mkdir /var/run/sshd /etc/skel/.ssh \
+ && chmod 700 /etc/skel/.ssh \
+ && >> /etc/ssh/sshd_config printf "%s\n" \
+  "UseDNS no" \
+  "PasswordAuthentication no" \
+  "ChallengeResponseAuthentication no" \
+  "PermitRootLogin no"
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
