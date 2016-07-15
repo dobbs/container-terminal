@@ -1,4 +1,4 @@
-FROM buildpack-deps:jessie
+FROM ubuntu:trusty
 MAINTAINER Eric Dobbs <eric@dobbse.net>
 
 RUN apt-get update
@@ -22,4 +22,7 @@ RUN >> /etc/ssh/sshd_config printf "%s\n" \
 EXPOSE 22
 
 RUN adduser --disabled-password --gecos="the deploy user" deploy
+RUN echo "deploy ALL = (ALL) NOPASSWD:ALL" >/etc/sudoers.d/deploy-nopassword \
+ && chmod 0440 /etc/sudoers.d/deploy-nopassword \
+ && visudo -cf /etc/sudoers
 VOLUME /home/deploy
