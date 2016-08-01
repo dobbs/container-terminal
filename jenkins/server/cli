@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export JENKINS_URL=http://server:8080
+exec java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar "$@"

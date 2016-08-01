@@ -1,14 +1,13 @@
-Jenkins nodes need java, sshd, an ssh account for the jenkins server, and authorized_keys correctly configured.
+# Jenkins 2.7.1
 
-Here are the commands I've used to get a server and node running and talking to one another.
+Includes base list of plugins, a default admin account, and a handy
+wrapper around jenkins-cli.jar
 
-```bash
-ct jenkins run --rm server ssh-keygen -t rsa -b 4096 
-
-ct jenkins run --rm server cat /var/jenkins_home/.ssh/id_rsa.pub
-| ct jenkins run --rm --user jenkins node tee /var/jenkins_home/.ssh/authorized_keys
-
-ipaddr=$(ct jenkins ps -q node | xargs docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')
+``` shell
+docker-compose up -d server
+docker-compose logs server
+# wait until you see the server has initialized
+docker-compose run --rm server cli login --username admin --password password
+docker-compose run --rm server cli list-plugins
+docker-compose run --rm server cli groovysh
 ```
-
-With the keys generated and the server authorized to login to the node, the jenkins server UI can be used to configure a credential and then use that credential for setting up the jenkins node.
