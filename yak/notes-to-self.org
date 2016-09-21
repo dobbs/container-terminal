@@ -71,3 +71,11 @@
                "Node": "c6d7303593be",
                "Address": "127.0.0.1",
    ...
+** vault DTSTTCPW
+   1. copied the top of consul's Dockerfile:
+      https://github.com/hashicorp/docker-consul/blob/470868df3885ad93f45a2c63c648bf119a544fa4/0.X/Dockerfile
+   2. s/consul/vault/g
+   3. docker-compose build vault
+   4. docker-compose run --rm vault vault
+
+   I can't believe that worked :-)
