@@ -1,0 +1,73 @@
+* Wiki & Turtle Graphics & Docker
+** Where is the Yak I need to shave?
+   Goal: connect turtles to wiki
+   Goal: federated -- want a thing that can stand on its own
+   Goal: indyweb -- want to teach others how and why
+
+   - convinced myself it wants to be in docker
+   - but docker host wants to be TLS secured
+   - TLS wants a CA and FQDN
+   - CA requires a safe place to put secrets
+   - Vault is a safe place to put secrets, and it's a CA!
+   - Vault wants consul at its back
+   - consul can run in docker
+   - consul wants to be TLS secured
+   - consul includes some DNS service
+   - might need my own DNS server if consul's DNS is too specialized
+
+** SO! I think I found the Yak to shave to bootstrap this problem
+   - [X] 1. install docker locally
+   - [X] 2. install & configure insecure consul locally
+   - [ ] 3. install & configure insecure vault locally
+   - [ ] 4. learn Vault CA and learn Consul DNS
+   - [ ] 5. maybe install & configure a DNS service
+   - [ ] 6. generate certs for Docker host
+   - [ ] 7. generate certs for consul
+   - [ ] 8. generate certs for vault
+   - [ ] 9. NOW! generate certs for nginx reverse proxy for wiki
+   - [ ] 10. experiment with high availability config for consul & v
+
+* [2016-09-21 Wed]
+** baby steps
+   following along with this: https://hub.docker.com/_/consul/
+*** shell play-by-play
+   $ docker pull consul:v0.7.0
+   $ docker run -d --name=yak consul:v0.7.0
+   $ docker exec -t yak consul members
+   Node          Address         Status  Type    Build  Protocol  DC
+   d4e0428250ca  127.0.0.1:8301  alive   server  0.7.0  2         dc1
+   $ docker exec -t yak curl http://localhost:8500/v1/health/service/consul?pretty
+   [
+       {
+           "Node": {
+               "Node": "d4e0428250ca",
+               "Address": "127.0.0.1",
+   ...
+   # try query from a different container
+   $ docker run --rm consul:v0.7.0 curl 172.17.0.2:8500/v1/health/service/consul?pretty
+   [
+       {
+           "Node": {
+               "Node": "420337e907b3",
+               "Address": "127.0.0.1",
+   ...
+   $ docker stop yak
+   $ docker rm yak
+** try again with docker-compose
+*** shell play-by-play
+   much further this time
+   $ docker-compose up -d
+   $ curl 192.168.99.100:8500/v1/health/service/consul?pretty
+   [
+       {
+           "Node": {
+               "Node": "c6d7303593be",
+               "Address": "127.0.0.1",
+   ...
+   $ curl consul:8500/v1/health/service/consul?pretty
+   [
+       {
+           "Node": {
+               "Node": "c6d7303593be",
+               "Address": "127.0.0.1",
+   ...
