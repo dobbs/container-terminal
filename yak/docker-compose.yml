@@ -4,10 +4,12 @@ services:
   consul:
     image: consul:v0.7.0
     ports:
-    - 8500:8500
+      - 8500:8500
     restart: unless-stopped
   vault:
     image: vault:0.6.1
+    ports:
+      - 8200:8200
     restart: unless-stopped
     cap_add:
       - IPC_LOCK  # prevent memory from swapping to disk

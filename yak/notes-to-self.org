@@ -19,14 +19,15 @@
    - [X] 1. install docker locally
    - [X] 2. install & configure insecure consul locally
    - [X] 3. install insecure vault locally
-   - [ ] 4. configure insecure, local vault
-   - [ ] 5. learn Vault CA and learn Consul DNS
-   - [ ] 6. maybe install & configure a DNS service
-   - [ ] 7. generate certs for Docker host
-   - [ ] 8. generate certs for consul
-   - [ ] 9. generate certs for vault
-   - [ ] 10. NOW! generate certs for nginx reverse proxy for wiki
-   - [ ] 11. experiment with high availability config for consul & vault
+   - [X] 4. configure insecure, local vault
+   - [X] 5. learn Vault CA
+   - [ ] 6. learn Consul DNS
+   - [ ] 7. maybe install & configure a DNS service
+   - [ ] 8. generate certs for Docker host
+   - [ ] 9. generate certs for consul
+   - [ ] 10. generate certs for vault
+   - [ ] 11. NOW! generate certs for nginx reverse proxy for wiki
+   - [ ] 12. experiment with high availability config for consul & vault
 
 * WIP
 ** TODO follow this tutorial using my container
@@ -90,3 +91,325 @@
    that calls for using a config file to boot vault
    learning how to add config file to vault from here:
    https://www.vaultproject.io/docs/config/index.html
+** docker variations on that tutorial
+*** having connected vault to consul, check initial status
+    open http://192.168.99.100:8500
+
+    poke around the vault service and see that it is alive and well,
+    but knows that it is sealed and so yellow status not green
+*** shell play-by-play (initialize root secret and unseal the vault)
+    $ docker exec -it yak_vault_1 sh
+    / # export VAULT_ADDR='http://vault:8200'
+    / # vault init
+    Unseal Key 1 (hex)   : 10c4840a7b6d7c7cd92c04d2dbafb31d30f7521fa3f35b516fec6e854f44b8b401
+    Unseal Key 1 (base64): EMSECnttfHzZLATS26+zHTD3Uh+j81tRb+xuhU9EuLQB
+    Unseal Key 2 (hex)   : 73592d4d48e78ad5f552ad8a17883c6f190c75366f6df8e3d5b24591457f994102
+    Unseal Key 2 (base64): c1ktTUjnitX1Uq2KF4g8bxkMdTZvbfjj1bJFkUV/mUEC
+    Unseal Key 3 (hex)   : 012d2ccfc74bec9ef8de562e4545e2a87ff4e15dadc3421817b4f517b2f000cc03
+    Unseal Key 3 (base64): AS0sz8dL7J743lYuRUXiqH/04V2tw0IYF7T1F7LwAMwD
+    Unseal Key 4 (hex)   : b97d505c45024a237ab6911f461a3a2bf2848d960ffa109eec115e1e794a383604
+    Unseal Key 4 (base64): uX1QXEUCSiN6tpEfRho6K/KEjZYP+hCe7BFeHnlKODYE
+    Unseal Key 5 (hex)   : cb0951decaae2c68773a6abb14d7e4ec947c19fdcd54aa652e17ee988ec5a1bb05
+    Unseal Key 5 (base64): ywlR3squLGh3Omq7FNfk7JR8Gf3NVKplLhfumI7FobsF
+    Initial Root Token: 9718be42-6307-b0e6-3a5b-bccb80d1d4ad
+
+    Vault initialized with 5 keys and a key threshold of 3. Please
+    securely distribute the above keys. When the Vault is re-sealed,
+    restarted, or stopped, you must provide at least 3 of these keys
+    to unseal it again.
+
+    Vault does not store the master key. Without at least 3 keys,
+    your Vault will remain permanently sealed.
+    / # vault unseal EMSECnttfHzZLATS26+zHTD3Uh+j81tRb+xuhU9EuLQB
+    Sealed: true
+    Key Shares: 5
+    Key Threshold: 3
+    Unseal Progress: 1
+    / # vault unseal AS0sz8dL7J743lYuRUXiqH/04V2tw0IYF7T1F7LwAMwD
+    Sealed: true
+    Key Shares: 5
+    Key Threshold: 3
+    Unseal Progress: 2
+    / # vault unseal ywlR3squLGh3Omq7FNfk7JR8Gf3NVKplLhfumI7FobsF
+    Sealed: false
+    Key Shares: 5
+    Key Threshold: 3
+    Unseal Progress: 0
+*** check consul to see if status changed
+    open http://192.168.99.100:8500
+
+    notice that the vault service status is green now that vault is unsealed
+*** shell play-by-play (mount pki backend and create root CA)
+    / # vault mount -path=yak-ca -description="Yak Razors Root CA" -max-lease-ttl=87600h pki
+    Mount error: Error making API request.
+
+    URL: POST http://vault:8200/v1/sys/mounts/yak-ca
+    Code: 400. Errors:
+
+    * missing client token
+    / # vault auth 9718be42-6307-b0e6-3a5b-bccb80d1d4ad
+    Successfully authenticated! You are now logged in.
+    token: 9718be42-6307-b0e6-3a5b-bccb80d1d4ad
+    token_duration: 0
+    token_policies: [root]
+    / # vault mount -path=yak-ca -description="Yak Razors Root CA" -max-lease-ttl=87600h pki
+    Successfully mounted 'pki' at yak-ca'!
+    / # vault write yak-ca/root/generate/internal \
+    > common_name="Yak Razors Root CA" \
+    > ttl=87600h \
+    > key_bits=4096 \
+    > exclude_cn_from_sans=true
+    Key          	Value
+    ---          	-----
+    certificate  	-----BEGIN CERTIFICATE-----
+    MIIFCjCCAvKgAwIBAgIURpdbaLFqCptuPw466h7WQjHMxtIwDQYJKoZIhvcNAQEL
+    BQAwHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENBMB4XDTE2MDkyMjE1MjYy
+    N1oXDTI2MDkyMDE1MjY1N1owHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENB
+    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAplX60IA3ks1gM+M4MV5M
+    UwZwdHsHen3HF3r784KGsUm3n6Xiu4ejtanZDPpZ38PkwGfwxZAxopw8iYIeNkGs
+    DiktRACVl9C/xpOJm7Ddep4359COvC6FVpmZwCjxzjA3U4LxTBjV3VLgdMTTkTFv
+    dJATZwCpS7lDe3jvL3kDCwvkucC0bjOgR5BZbwYea9Lusjv9aSKcNFpFeCEyISq4
+    HL3aVoP91azyclhn6+ah0He19AI0iXnnVXcFXX2JYX1tIn0MRc0t0AGlzaybZi9z
+    0vSiNntGJpmp2UHhMNEdHEo34Xk7DV1gu9Z6vNHEc9FKi1Kx4P339dJ4t3EsnYAC
+    JoX+ZcCR+sPgcAAgrQ6TcDkVypQv8Hk3KMN5ubxRSfMQTGc925sUOyR5jL4sucHy
+    nQef5SIVhQelagjUFI5FNizA5W7i/R0vKX99uRxOMK936LwSSr81JhE0tgcQAioZ
+    dgq2DwbkfXUydmmfXfnbg0hku6ZmwaqfvKRKMh9Jv+FXJnBy7vjAvHZVofkvtJRx
+    RItUOoXMVNN+Zt/FhvNNGWm2zuDJDSuH/Kumoe4oScc0isucAASIe1EvjMsdVUe+
+    VLbrdcb+2HegZal7ZdBJ22lr14O40ecX5JXEbBtc0vThhR+vUmb2CPzGPGwbK3va
+    L8YiAaIGcQ71Q4WTkcOutAsCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1Ud
+    EwEB/wQFMAMBAf8wHQYDVR0OBBYEFCl1JCRagsZM2KyI+V+CjTJHdTgKMA0GCSqG
+    SIb3DQEBCwUAA4ICAQBXCpfYgn8HdadyEWycbwTMkODpgNbT+6uRfSyt8LCwjp/U
+    7V74lSf9asRXPNWTkC43X8vqlWA7wm7fpJZ9SMYqls0r6T+EdkoVS/8sgz93E0sD
+    iKQRw2tQaXmtCBAOvDAFVLucpe6mLpmgFVtcRApvMOSdZiH0Q4oh2Rdbrt1HbiG6
+    pEo9jAdkNVBHkifhUp+Rf+A83NzOrRc1KuXR4m3v+9V6tQBIb5EgONWh11CHRAjY
+    5GlO9E4ZiRQitg8IK7W6IDLl7GuWip333Peqa0J8NELqd8GiEVME53qLCfI9b7A7
+    FagzVEi4zS3JCFrYNRea50OyyH8EQFFF26iUbMIPfeuTME+t8MC0SQ58jnXrh1yV
+    Wnjdm4IY/kYLPmQ1i6INUwlQJlbJMYJp/e4g1pdnzIRkxtFhH1lGtyXRbNpauKph
+    lZdQX9GM9uo2gAkSfRRuINvnYfmD10VdCrNVpeQQ5d0ploUR10l5+I8QNZvV6d2f
+    xcColxvh5q/sEN04hXqiiNOV2QnL6XNpYn+xwwy0z00J2mMHP9JF4JGSYPo06YZ0
+    UbTUiz9nldSlrOsbIt/Kvhqa3cFqbJe5L69NXveh6+iZLvsv4Sz591jjgLQ9UNeA
+    OSjOOrsH2sujrxAnYt4Ufw13Ka5JP4o+mviTwa+AYekcwhhfDgHbMztR0FRa6w==
+    -----END CERTIFICATE-----
+    expiration   	1789918017
+    issuing_ca   	-----BEGIN CERTIFICATE-----
+    MIIFCjCCAvKgAwIBAgIURpdbaLFqCptuPw466h7WQjHMxtIwDQYJKoZIhvcNAQEL
+    BQAwHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENBMB4XDTE2MDkyMjE1MjYy
+    N1oXDTI2MDkyMDE1MjY1N1owHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENB
+    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAplX60IA3ks1gM+M4MV5M
+    UwZwdHsHen3HF3r784KGsUm3n6Xiu4ejtanZDPpZ38PkwGfwxZAxopw8iYIeNkGs
+    DiktRACVl9C/xpOJm7Ddep4359COvC6FVpmZwCjxzjA3U4LxTBjV3VLgdMTTkTFv
+    dJATZwCpS7lDe3jvL3kDCwvkucC0bjOgR5BZbwYea9Lusjv9aSKcNFpFeCEyISq4
+    HL3aVoP91azyclhn6+ah0He19AI0iXnnVXcFXX2JYX1tIn0MRc0t0AGlzaybZi9z
+    0vSiNntGJpmp2UHhMNEdHEo34Xk7DV1gu9Z6vNHEc9FKi1Kx4P339dJ4t3EsnYAC
+    JoX+ZcCR+sPgcAAgrQ6TcDkVypQv8Hk3KMN5ubxRSfMQTGc925sUOyR5jL4sucHy
+    nQef5SIVhQelagjUFI5FNizA5W7i/R0vKX99uRxOMK936LwSSr81JhE0tgcQAioZ
+    dgq2DwbkfXUydmmfXfnbg0hku6ZmwaqfvKRKMh9Jv+FXJnBy7vjAvHZVofkvtJRx
+    RItUOoXMVNN+Zt/FhvNNGWm2zuDJDSuH/Kumoe4oScc0isucAASIe1EvjMsdVUe+
+    VLbrdcb+2HegZal7ZdBJ22lr14O40ecX5JXEbBtc0vThhR+vUmb2CPzGPGwbK3va
+    L8YiAaIGcQ71Q4WTkcOutAsCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1Ud
+    EwEB/wQFMAMBAf8wHQYDVR0OBBYEFCl1JCRagsZM2KyI+V+CjTJHdTgKMA0GCSqG
+    SIb3DQEBCwUAA4ICAQBXCpfYgn8HdadyEWycbwTMkODpgNbT+6uRfSyt8LCwjp/U
+    7V74lSf9asRXPNWTkC43X8vqlWA7wm7fpJZ9SMYqls0r6T+EdkoVS/8sgz93E0sD
+    iKQRw2tQaXmtCBAOvDAFVLucpe6mLpmgFVtcRApvMOSdZiH0Q4oh2Rdbrt1HbiG6
+    pEo9jAdkNVBHkifhUp+Rf+A83NzOrRc1KuXR4m3v+9V6tQBIb5EgONWh11CHRAjY
+    5GlO9E4ZiRQitg8IK7W6IDLl7GuWip333Peqa0J8NELqd8GiEVME53qLCfI9b7A7
+    FagzVEi4zS3JCFrYNRea50OyyH8EQFFF26iUbMIPfeuTME+t8MC0SQ58jnXrh1yV
+    Wnjdm4IY/kYLPmQ1i6INUwlQJlbJMYJp/e4g1pdnzIRkxtFhH1lGtyXRbNpauKph
+    lZdQX9GM9uo2gAkSfRRuINvnYfmD10VdCrNVpeQQ5d0ploUR10l5+I8QNZvV6d2f
+    xcColxvh5q/sEN04hXqiiNOV2QnL6XNpYn+xwwy0z00J2mMHP9JF4JGSYPo06YZ0
+    UbTUiz9nldSlrOsbIt/Kvhqa3cFqbJe5L69NXveh6+iZLvsv4Sz591jjgLQ9UNeA
+    OSjOOrsH2sujrxAnYt4Ufw13Ka5JP4o+mviTwa+AYekcwhhfDgHbMztR0FRa6w==
+    -----END CERTIFICATE-----
+    serial_number	46:97:5b:68:b1:6a:0a:9b:6e:3f:0e:3a:ea:1e:d6:42:31:cc:c6:d2
+*** check root cert from outside the container
+    At this point I discovered that I had not yet opened port 8200 on the host:
+    $ curl -vv -i -s http://192.168.99.100:8200/v1/yak-ca/ca/pem
+    *   Trying 192.168.99.100...
+    * Connected to 192.168.99.100 (192.168.99.100) port 8200 (#0)
+    > GET /v1/yak-ca/ca/pem HTTP/1.1
+    > Host: 192.168.99.100:8200
+    > User-Agent: curl/7.43.0
+    > Accept: */*
+    >
+    * Empty reply from server
+    * Connection #0 to host 192.168.99.100 left intact
+
+    So I shutdown the vault container, updated docker-compose.yml to
+    open that port, and restarted the container.
+
+    Not surprisingly, the container restarted with the vault in a
+    sealed state.  Lucky for me, I had copied the Unseal Keys into
+    these docs above.  Also lucky for me, the existing encrypted data
+    was persisted to consul.
+
+    $ docker exec -it yak_vault_1 sh
+    / # export VAULT_ADDR='http://vault:8200'
+    / # vault unseal c1ktTUjnitX1Uq2KF4g8bxkMdTZvbfjj1bJFkUV/mUEC
+    Sealed: true
+    Key Shares: 5
+    Key Threshold: 3
+    Unseal Progress: 1
+    / # vault unseal AS0sz8dL7J743lYuRUXiqH/04V2tw0IYF7T1F7LwAMwD
+    Sealed: true
+    Key Shares: 5
+    Key Threshold: 3
+    Unseal Progress: 2
+    / # vault unseal uX1QXEUCSiN6tpEfRho6K/KEjZYP+hCe7BFeHnlKODYE
+    Sealed: false
+    Key Shares: 5
+    Key Threshold: 3
+    Unseal Progress: 0
+    / # vault auth 9718be42-6307-b0e6-3a5b-bccb80d1d4ad
+    Successfully authenticated! You are now logged in.
+    token: 9718be42-6307-b0e6-3a5b-bccb80d1d4ad
+    token_duration: 0
+    token_policies: [root]
+    / # vault mounts
+    Path        Type       Default TTL  Max TTL    Description
+    cubbyhole/  cubbyhole  n/a          n/a        per-token private secret storage
+    secret/     generic    system       system     generic secret storage
+    sys/        system     n/a          n/a        system endpoints used for control, policy and debugging
+    yak-ca/     pki        system       315360000  Yak Razors Root CA
+
+    Looks like the CA survived the restart and unseal.  And...
+
+    $ curl -s http://192.168.99.100:8200/v1/yak-ca/ca/pem | openssl x509 -text
+    Certificate:
+        Data:
+            Version: 3 (0x2)
+            Serial Number:
+                46:97:5b:68:b1:6a:0a:9b:6e:3f:0e:3a:ea:1e:d6:42:31:cc:c6:d2
+            Signature Algorithm: sha256WithRSAEncryption
+            Issuer: CN=Yak Razors Root CA
+    ...
+
+    GOLD!
+*** shell play-by-play (mount pki backend again, create & sign intermediate CA)
+    / # vault mount -path=yak-ops -description="Yak Razors Ops Intermediate CA" -max-lease-ttl=2160h pki
+    / # vault write yak-ops/intermediate/generate/internal \
+    >  common_name="Yak Razors Ops Intermediate CA" \
+    >  ttl=2160h \
+    >  key_bits=4096 \
+    >  exclude_cn_from_sans=true
+    Key	Value
+    ---	-----
+    csr	-----BEGIN CERTIFICATE REQUEST-----
+    MIIEbjCCAlYCAQAwKTEnMCUGA1UEAxMeWWFrIFJhem9ycyBPcHMgSW50ZXJtZWRp
+    YXRlIENBMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAs4EZd26AZZ9j
+    MGUVLSScFG4FJkn6DWoeKEvtSqm/mDrJzEm52x+IeNHnvvuqVLFNMtUJnzqH/AKb
+    WlnBYxs1KLUo24svlaifBfPMP9YdTRjngd5VtmhUOljql+pEgfwEe9CkBxNezqZh
+    ym5n8PLwQhZl8xRzFcuPbziIJ+yay1jCHenfTGy1mU45tjqDvA6jsT7GVHtGiADf
+    QTmfXBf69txBB4MoPmw32LOwR6c/9qF+9bWEy8JiUGkd5d7rFB7DLKFGqd5Lqteq
+    rXRcogIOmwsZ6SViWADSeSYqZMUQwyoc3MJjhxJbf2ThCTiS2sKo4Cy4L6gHjnbG
+    hHw/eq1vaSu2l07ecxDixk1c/7Yiq6h/JhQE+RFrHqOvcw4sCrLZaSY2ADkLH8di
+    CeZE37i1YqoJfeYNExNGiRGVMbtfWztcOa4RUrZ4lREwmOz5RM64WZr0NsyXPMie
+    i3/VApf1gqCynaE5U5lnvufid2TYmI1enNlXSXNDXcSmQulcY2/v/a6KzrNtMwGu
+    EawvTC3QnTgHVe7LG9oSU01elQFBUcdoJiKbwLr7ruYVjXJAu95i6lGVJOak52Ma
+    zF9v4FYsykNChPcKP6Hw3aPgC3q/V44wP5xeFRNkrvHboxets7A8/T10HJLXQk7n
+    hhfX4fLGm6stTSsiGsYLqACX8Nn2eYUCAwEAAaAAMA0GCSqGSIb3DQEBCwUAA4IC
+    AQAbwx8aIMXq5iayrblhdbmqyfP8zP1Ye03nFmWR35wpSOhUKtVZQNeGhANlcVkb
+    QXrA1C7a+nyuPwUG3CvhmNaQv6vbGZEKzxwuTZBW0JW/vPnzJP+Rsb5+6IbqcOy1
+    Oj7ZTPiJQ9CgcSKAm03f1xCYB6E1I0/kmdWNZDMZbebDrzMiotxeBp6jTSHLkzJS
+    Z2D87atyHQOF+R9TbzWbTs2VIIEUknhYXSczIDz5R2OIP3BJMqA/bv44y7hN2rFm
+    +ALu2LNjZI+nDIqgG1jPb2nle+DB5kve9D6Re4OC9ZOfVrPPnqAfENwxtuRbPUYm
+    X/XCbNtElwXWLWVigdbS6kEN2Oz4XU1ORF/hHWgqTXxZ6lJRouqSpwL8TLE4yX9n
+    BnHctV+koccBRNSYYqqduZ3QYLllnqOsPI2ufpGvr29dUcCOykDhoiyHdrVA5Iih
+    drQgLWFd1HDGUAuaUAqpEWY64ipy/4ZkxRrAqb+jIzPRFThvk/ABK9jastf5zVCm
+    Cg/hAxUTsx5FZxAk077YEr+4ZDzsEvNJe8xI5N0ASpogafp8H4EUw1jYl6FSnGsi
+    scLJA7t3Q2tmdKL/SehyA12Rtb7/KLsmCBfEysy7qFIVJxIbwI6666rVmAEqKINz
+    tS6vgaMGOlyAUgDs+mDcKkIc6OuvCY+e7uBWys3wkAWX+g==
+    -----END CERTIFICATE REQUEST-----
+    / # cat > /yak-ops.csr
+    -----BEGIN CERTIFICATE REQUEST-----
+    MIIEbjCCAlYCAQAwKTEnMCUGA1UEAxMeWWFrIFJhem9ycyBPcHMgSW50ZXJtZWRp
+    YXRlIENBMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAs4EZd26AZZ9j
+    MGUVLSScFG4FJkn6DWoeKEvtSqm/mDrJzEm52x+IeNHnvvuqVLFNMtUJnzqH/AKb
+    ...
+    / # vault write yak-ca/root/sign-intermediate \
+    >  csr=@yak-ops.csr \
+    >  common_name="Yak Razors Ops Intermediate CA" \
+    >  ttl=8760h
+    Key          	Value
+    ---          	-----
+    certificate  	-----BEGIN CERTIFICATE-----
+    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
+    -----END CERTIFICATE-----
+    expiration   	1506101887
+    issuing_ca   	-----BEGIN CERTIFICATE-----
+    MIIFCjCCAvKgAwIBAgIURpdbaLFqCptuPw466h7WQjHMxtIwDQYJKoZIhvcNAQEL
+    BQAwHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENBMB4XDTE2MDkyMjE1MjYy
+    N1oXDTI2MDkyMDE1MjY1N1owHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENB
+    MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAplX60IA3ks1gM+M4MV5M
+    UwZwdHsHen3HF3r784KGsUm3n6Xiu4ejtanZDPpZ38PkwGfwxZAxopw8iYIeNkGs
+    DiktRACVl9C/xpOJm7Ddep4359COvC6FVpmZwCjxzjA3U4LxTBjV3VLgdMTTkTFv
+    dJATZwCpS7lDe3jvL3kDCwvkucC0bjOgR5BZbwYea9Lusjv9aSKcNFpFeCEyISq4
+    HL3aVoP91azyclhn6+ah0He19AI0iXnnVXcFXX2JYX1tIn0MRc0t0AGlzaybZi9z
+    0vSiNntGJpmp2UHhMNEdHEo34Xk7DV1gu9Z6vNHEc9FKi1Kx4P339dJ4t3EsnYAC
+    JoX+ZcCR+sPgcAAgrQ6TcDkVypQv8Hk3KMN5ubxRSfMQTGc925sUOyR5jL4sucHy
+    nQef5SIVhQelagjUFI5FNizA5W7i/R0vKX99uRxOMK936LwSSr81JhE0tgcQAioZ
+    dgq2DwbkfXUydmmfXfnbg0hku6ZmwaqfvKRKMh9Jv+FXJnBy7vjAvHZVofkvtJRx
+    RItUOoXMVNN+Zt/FhvNNGWm2zuDJDSuH/Kumoe4oScc0isucAASIe1EvjMsdVUe+
+    VLbrdcb+2HegZal7ZdBJ22lr14O40ecX5JXEbBtc0vThhR+vUmb2CPzGPGwbK3va
+    L8YiAaIGcQ71Q4WTkcOutAsCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1Ud
+    EwEB/wQFMAMBAf8wHQYDVR0OBBYEFCl1JCRagsZM2KyI+V+CjTJHdTgKMA0GCSqG
+    SIb3DQEBCwUAA4ICAQBXCpfYgn8HdadyEWycbwTMkODpgNbT+6uRfSyt8LCwjp/U
+    7V74lSf9asRXPNWTkC43X8vqlWA7wm7fpJZ9SMYqls0r6T+EdkoVS/8sgz93E0sD
+    iKQRw2tQaXmtCBAOvDAFVLucpe6mLpmgFVtcRApvMOSdZiH0Q4oh2Rdbrt1HbiG6
+    pEo9jAdkNVBHkifhUp+Rf+A83NzOrRc1KuXR4m3v+9V6tQBIb5EgONWh11CHRAjY
+    5GlO9E4ZiRQitg8IK7W6IDLl7GuWip333Peqa0J8NELqd8GiEVME53qLCfI9b7A7
+    FagzVEi4zS3JCFrYNRea50OyyH8EQFFF26iUbMIPfeuTME+t8MC0SQ58jnXrh1yV
+    Wnjdm4IY/kYLPmQ1i6INUwlQJlbJMYJp/e4g1pdnzIRkxtFhH1lGtyXRbNpauKph
+    lZdQX9GM9uo2gAkSfRRuINvnYfmD10VdCrNVpeQQ5d0ploUR10l5+I8QNZvV6d2f
+    xcColxvh5q/sEN04hXqiiNOV2QnL6XNpYn+xwwy0z00J2mMHP9JF4JGSYPo06YZ0
+    UbTUiz9nldSlrOsbIt/Kvhqa3cFqbJe5L69NXveh6+iZLvsv4Sz591jjgLQ9UNeA
+    OSjOOrsH2sujrxAnYt4Ufw13Ka5JP4o+mviTwa+AYekcwhhfDgHbMztR0FRa6w==
+    -----END CERTIFICATE-----
+    serial_number	3f:64:6b:98:ee:8c:6b:48:bf:96:8e:b3:6d:0b:ff:88:16:2a:77:c0
+    / # cat > /yak-ops.crt
+    -----BEGIN CERTIFICATE-----
+    MIIFZDCCA0ygAwIBAgIUP2RrmO6Ma0i/lo6zbQv/iBYqd8AwDQYJKoZIhvcNAQEL
+    BQAwHTEbMBkGA1UEAxMSWWFrIFJhem9ycyBSb290IENBMB4XDTE2MDkyMjE3Mzcz
+    ...
+    / # vault write yak-ops/intermediate/set-signed certificate=@yak-ops.crt
+*** verify intermediate cert from outside the container
+    $ curl -s http://192.168.99.100:8200/v1/yak-ops/ca/pem | openssl x509 -text
+    Certificate:
+        Data:
+            Version: 3 (0x2)
+            Serial Number:
+                3f:64:6b:98:ee:8c:6b:48:bf:96:8e:b3:6d:0b:ff:88:16:2a:77:c0
+            Signature Algorithm: sha256WithRSAEncryption
+            Issuer: CN=Yak Razors Root CA
+            Validity
+                Not Before: Sep 22 17:37:37 2016 GMT
+                Not After : Sep 22 17:38:07 2017 GMT
+            Subject: CN=Yak Razors Ops Intermediate CA
+    ...
