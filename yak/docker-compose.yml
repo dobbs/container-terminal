@@ -9,3 +9,9 @@ services:
   vault:
     image: vault:0.6.1
     restart: unless-stopped
+    cap_add:
+      - IPC_LOCK  # prevent memory from swapping to disk
+    volumes:
+      - "./vault/config:/vault/config"
+    command: >-
+      server

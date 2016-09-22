@@ -85,3 +85,8 @@
    I can't believe that worked :-)
 ** vault There is a Simpler Thing...
    docker pull vault:0.6.1
+* [2016-09-22 Thu]
+** following this tutorial for vault as a CA & PKI: http://cuddletech.com/?p=959
+   that calls for using a config file to boot vault
+   learning how to add config file to vault from here:
+   https://www.vaultproject.io/docs/config/index.html
