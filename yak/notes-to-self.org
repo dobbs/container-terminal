@@ -18,15 +18,19 @@
 ** SO! I think I found the Yak to shave to bootstrap this problem
    - [X] 1. install docker locally
    - [X] 2. install & configure insecure consul locally
-   - [ ] 3. install & configure insecure vault locally
-   - [ ] 4. learn Vault CA and learn Consul DNS
-   - [ ] 5. maybe install & configure a DNS service
-   - [ ] 6. generate certs for Docker host
-   - [ ] 7. generate certs for consul
-   - [ ] 8. generate certs for vault
-   - [ ] 9. NOW! generate certs for nginx reverse proxy for wiki
-   - [ ] 10. experiment with high availability config for consul & v
+   - [X] 3. install insecure vault locally
+   - [ ] 4. configure insecure, local vault
+   - [ ] 5. learn Vault CA and learn Consul DNS
+   - [ ] 6. maybe install & configure a DNS service
+   - [ ] 7. generate certs for Docker host
+   - [ ] 8. generate certs for consul
+   - [ ] 9. generate certs for vault
+   - [ ] 10. NOW! generate certs for nginx reverse proxy for wiki
+   - [ ] 11. experiment with high availability config for consul & vault
 
+* WIP
+** TODO follow this tutorial using my container
+   http://cuddletech.com/?p=959
 * [2016-09-21 Wed]
 ** baby steps
    following along with this: https://hub.docker.com/_/consul/
@@ -79,3 +83,5 @@
    4. docker-compose run --rm vault vault
 
    I can't believe that worked :-)
+** vault There is a Simpler Thing...
+   docker pull vault:0.6.1

@@ -7,5 +7,5 @@ services:
     - 8500:8500
     restart: unless-stopped
   vault:
-    build:
-      context: ./vault
+    image: vault:0.6.1
+    restart: unless-stopped
