@@ -1,0 +1,14 @@
+{
+  "consul": "consul:8500",
+  "services": [
+    {
+      "name": "names",
+      "port": "53",
+      "health": [
+        "drill @names anything.{{.DOMAIN}} | egrep -q '{{.IP}}' "
+      ],
+      "poll": "10",
+      "ttl": "17"
+    }
+  ]
+}

@@ -21,7 +21,7 @@
    - [X] 3. install insecure vault locally
    - [X] 4. configure insecure, local vault
    - [X] 5. learn Vault CA
-   - [ ] 6. learn Consul DNS
+   - [X] 6. learn Consul DNS
    - [ ] 7. maybe install & configure a DNS service
    - [ ] 8. generate certs for Docker host
    - [ ] 9. generate certs for consul
@@ -413,3 +413,146 @@
                 Not After : Sep 22 17:38:07 2017 GMT
             Subject: CN=Yak Razors Ops Intermediate CA
     ...
+*** create role to issue 90 day certificates
+    / # vault write yak-ops/intermediate/set-signed certificate=@yak-ops.crt
+    Success! Data written to: yak-ops/intermediate/set-signed
+    / # vault write yak-ops/roles/90d-cert \
+    > key_bits=2048 \
+    > max_ttl=2160h \
+    > allow_any_name=true
+    Success! Data written to: yak-ops/roles/90d-cert
+*** issue a cert
+    / # vault write yak-ops/issue/90d-cert \
+    > common_name="local.vault.dev" \
+    > ip_sans="172.31.0.3" \
+    > ttl=720h \
+    > format=pem
+    Key             	Value
+    ---             	-----
+    lease_id        	yak-ops/issue/90d-cert/3b301e6d-ed13-4fe1-ca5d-0416e6d88d26
+    lease_duration  	719h59m59s
+    lease_renewable 	false
+    certificate     	-----BEGIN CERTIFICATE-----
+    MIIEZjCCAk6gAwIBAgIUHdC4mu7r2b0V0gGZBbfrE+E6s0YwDQYJKoZIhvcNAQEL
+    BQAwKTEnMCUGA1UEAxMeWWFrIFJhem9ycyBPcHMgSW50ZXJtZWRpYXRlIENBMB4X
+    DTE2MDkyMjE4MDkwMloXDTE2MTAyMjE4MDkzMlowGjEYMBYGA1UEAxMPbG9jYWwu
+    dmF1bHQuZGV2MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0de51zr3
+    7f+TmV15RNH2Ek/VzkxBgjTs2RH9swpMeSK5jMh9mX6Of087F141PsGPXmKJ7n8W
+    o5AWzTaEiZU39SW2Am6MzLSDZwYDp5pmu0F4nBqHd8y4UUfuoyypxIrAXlRXJpXZ
+    Samv81dfMSc9quCjgAyngYpMKatf9LDwtYapH55ZHezzgfhrXAme+WIHMnZGSK6X
+    py9Oa7zMFdBFHkpwZ6B2FBOhiBkuRx5ri8B+waAkH2MTKsystn6mts4ZJE5gLGFc
+    xsxGHIFfiXiibP0HR/7FWmkhYVxq94Ekbzdn5Eh930HKkyMBHoftfXGhDdvwHMfD
+    O2obBgBVONH6hwIDAQABo4GUMIGRMA4GA1UdDwEB/wQEAwIDqDAdBgNVHSUEFjAU
+    BggrBgEFBQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYEFPanejmnG3+K6jexk7V4slFW
+    TWr5MB8GA1UdIwQYMBaAFInPkbWL5wdeNOwy7rxJ7tNhdtOAMCAGA1UdEQQZMBeC
+    D2xvY2FsLnZhdWx0LmRldocErB8AAzANBgkqhkiG9w0BAQsFAAOCAgEAdjMJ4cBc
+    6XEsKcIA+SJ5iIp2n0hg4lspxOXqH1SMRmSoM7IAMToETASAx7I2lplppiQDoPbI
+    S5xPsLlRUPcqJ8xDkQ1I5J/qeH1ZGTTY8XoW3KmrwAndvI11kV/iVZp7nV9+d7Dc
+    fX8Zl8Mgz2sKuweliUijXvRORHErZiCNk3SKK+ubVEpTb/Qtvdm0iSg/BWTlOc71
+    f3Rw0VA5yUxk69jWBP1pk0fJO/ki/hMrGB0hWP4CqycZCkHODW2I1S6aALcwTud+
+    d+K8LbNVBdMlNmidYtMgnioydgKdPX8r8qACPYkjHfvgvPtkTnmsunSUY375HWFx
+    6GHxwlu1qfLzXq90s1rnncHCYqkc7j078YdM2KgneslTXiWua2j6m09tzPMgt4Qq
+    rIdG+89vjMiEPzqcq2qkxJr3/qtSsGafcT89G8V7iN2iN3zrhPLZVBlVCf1JKUMe
+    vjqSi9VqNOrCia821Bpd//hENqlNhmhU61HNSOLfASGLjAOpq3vZLXEURirfy1zb
+    Z7wYsc7rcTiUD01HARPZn85nUMo/xbya14uyesz30qYCXHTspIgpteNXWEa469tR
+    xNpCrI+6MBBjCi0XzMf2aZYR0r+YxSSyfFm7iqSzS3R9uFarq89F0333/ysAZOPs
+    5PYaY0KFZ49lEESjBr4s1zH6fr6DYB8vsas=
+    -----END CERTIFICATE-----
+    issuing_ca      	-----BEGIN CERTIFICATE-----
+    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
+    -----END CERTIFICATE-----
+    private_key     	-----BEGIN RSA PRIVATE KEY-----
+    MIIEpQIBAAKCAQEA0de51zr37f+TmV15RNH2Ek/VzkxBgjTs2RH9swpMeSK5jMh9
+    mX6Of087F141PsGPXmKJ7n8Wo5AWzTaEiZU39SW2Am6MzLSDZwYDp5pmu0F4nBqH
+    d8y4UUfuoyypxIrAXlRXJpXZSamv81dfMSc9quCjgAyngYpMKatf9LDwtYapH55Z
+    HezzgfhrXAme+WIHMnZGSK6Xpy9Oa7zMFdBFHkpwZ6B2FBOhiBkuRx5ri8B+waAk
+    H2MTKsystn6mts4ZJE5gLGFcxsxGHIFfiXiibP0HR/7FWmkhYVxq94Ekbzdn5Eh9
+    30HKkyMBHoftfXGhDdvwHMfDO2obBgBVONH6hwIDAQABAoIBABIzF5cnMiGeLPr8
+    NGxXmXP1IKIH0xar6G7bNJm2pvNKo7UmHl6Vr14zTPi13wBWYUzaVwQsWZZOBOw/
+    cjdMjdHhN2v2kpeegFcLGn4K0iYjg4ZmdqFZTBMgnf3g/chiEFUeE4DxNitBYFVG
+    mqb0tFCBsyyD7HM7v2dNycC7J+VWZFekg3GkQpmdmDW74vvLCGxzHE+35lr6jgEO
+    +hkUdflyYeEWCTZX6jymBZM1Tx/UAyKQU3Ih9y40bQ6bmf9HNTGc62lX5TL8vDNu
+    e9P4RXVDgNa01eOHIBUT3BdEXku0L7q40M4JZHP900cBCz2yb/qpcKnyudDJkCNb
+    Z2YUROECgYEA6qCzKH5TcU/8UoP+v2Wo10GIjs1tdWEJEDm63uh5F0bQC5AYPB2V
+    09su/tS1JvIy60p9FDji0/WCqYY0TkqFbQFAvdGr6thaEWtRxTmkiltXWolIO588
+    wVOxz5IUw55abOty1Vz11ZRfrjM/SiGKVIEdQKFnjVh04PLNfOt3byMCgYEA5PUP
+    zXDz73b5rD2lO9SrIBxd6z0XbLp9CIbQ9lzJQnk9tku8Xigp0zwgT9HDa6RmtZQq
+    icElNab8CeXbV8C44zoysy/c9u+evZovdLqn5EudHOHEkDNKeobpyepbX40xf514
+    uDvv90ZcqyhXfWcte+GIq12tge8OaCc3Z6N7j00CgYEAkamo8JfU2AFPZi8aRdso
+    QlMmI3n33aqbhN5CXMc4/jFxUexoj1HSxc9K0txdhstQv3DkTFywveSq9PIjoQN0
+    6GKhvfbg45DkAfJ9tpL9ywPALK4UESfgASojtvk7OOMjwoE+LqZi3PEbobuhLDW8
+    epAaCBjsf/0NuuYims5YvL8CgYEAnFYxmih8iJEG3vOg9f+7ccus3cnzSsz0P3Q/
+    D1pAGuHKn8WLNAfct14g+h/TfpbdgzNO8I0wKTiCdQe9BGiWVqIQqIYQLZVlITY9
+    HUmvBpYTC/ulSombW5rv3G3oQpCYsfkGy1Yx/vjOohiD1R800ZgoyErJBSYFAl10
+    2ZGp9ykCgYEAxt0x64DWdtbB50DgzEh/VuoMo+kPX9QuGOMSkhCLhgifQiW534bV
+    t5iCG+w60/CwusA/FntNxf3b1Ghi2I5Nhbwxo5m5/qelcwndGLuA3BQ83tNKhkJ7
+    KSo7WaVOzj+Ze74hUoR7gEnnz7uKhoa2UNUIcqp1RMaNYgsRgiDkfXg=
+    -----END RSA PRIVATE KEY-----
+    private_key_type	rsa
+    serial_number   	1d:d0:b8:9a:ee:eb:d9:bd:15:d2:01:99:05:b7:eb:13:e1:3a:b3:46
+* [2016-09-24 Sat]
+** thinking about roles and policies
+   So far I've been using a root identity which lets me create all the
+   things.  I definitely want to separate roles over who can create or
+   change the CAs.  I think I want to be more restrictive in the
+   permissions I give so that I can develop awareness of hidden
+   security decisions.
+
+   Role-admin: updates roles, updates policies
+   CA-admin: creates Root and Intermediate Certs
+   Cert-issuer: creates or revokes host and client certs
+   Cert-courier: distributes certs to hosts and clients
+
+   vault policy-write role-admin role-admin.hcl
+   vault policy-write ca-admin ca-admin.hcl
+   vault policy-write cert-issuer cert-issuer.hcl
+   vault policy-write cert-courier cert-courier.hcl
+
+   A_TOKEN=$(vault token-create -policy="cert-courier")
+   vault auth $A_TOKEN
+   # start shipping certs
+* [2016-09-25 Sun]
+** researching DNS containers
+   https://github.com/hardware/nsd-dnssec
+   docker pull hardware/nsd-dnssec
+   This French-langauge blog has interesting examples:
+   https://blog.meshup.net/deploy-nsd-dnssec-with-docker/
+* [2016-09-28 Wed]
+** nsd-dnssec it biting off more than I want to chew
+   The path led me toward running my own root name server which is
+   more than I want to learn right now.  I would prefer to just manage
+   /etc/hosts.
+
+   That said, I think it's worth just a bit more time with dnsmasq
+   because I made decent progress in managing my own names with those
+   earlier experiments.
+** got dnsmasq example wrapped with consul with hard-coded --address arg
+   good enough stopping point for now

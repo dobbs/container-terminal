@@ -17,3 +17,12 @@ services:
       - "./vault/config:/vault/config"
     command: >-
       server
+  names:
+    build:
+      context: ./names
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
