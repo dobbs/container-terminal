@@ -5,10 +5,10 @@
       "name": "names",
       "port": "53",
       "health": [
-        "drill @names anything.{{.DOMAIN}} | egrep -q '{{.IP}}' "
+        "health.sh", "anything.{{.DOMAIN}}"
       ],
-      "poll": "10",
-      "ttl": "17"
+      "poll": "3",
+      "ttl": "10"
     }
   ]
 }

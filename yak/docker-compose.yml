@@ -26,3 +26,6 @@ services:
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
+    environment:
+      - "DOMAIN=swim"
+      - "IP=192.168.99.100"
