@@ -22,7 +22,7 @@
    - [X] 4. configure insecure, local vault
    - [X] 5. learn Vault CA
    - [X] 6. learn Consul DNS
-   - [ ] 7. maybe install & configure a DNS service
+   - [X] 7. maybe install & configure a DNS service
    - [ ] 8. generate certs for Docker host
    - [ ] 9. generate certs for consul
    - [ ] 10. generate certs for vault
@@ -556,3 +556,6 @@
    earlier experiments.
 ** got dnsmasq example wrapped with consul with hard-coded --address arg
    good enough stopping point for now
+* [2016-10-01 Sat]
+** moved hard-coded root domain to environment variable
+   also have a proof of concept with containerpilot and consul-template

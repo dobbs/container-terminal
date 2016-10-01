@@ -1,0 +1,2 @@
+address=/{{env "DOMAIN"}}/{{env "IP"}}
+hostsdir=/etc/dnsmasq.d

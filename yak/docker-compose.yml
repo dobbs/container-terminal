@@ -27,5 +27,5 @@ services:
     cap_add:
       - NET_ADMIN
     environment:
-      - "DOMAIN=swim"
+      - "DOMAIN=yak"
       - "IP=192.168.99.100"

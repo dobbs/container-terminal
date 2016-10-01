@@ -19,5 +19,7 @@ RUN echo -e "downloading ${CP_URL}\ncomparing with ${CP_SHA1}" \
  && rm /tmp/containerpilot.tar.gz
 COPY containerpilot.json /etc/containerpilot.json
 COPY health.sh /usr/local/bin/
+COPY prestart.sh /usr/local/bin/
+COPY dnsmasq.ctmpl /etc/
 CMD ["containerpilot", "-config", "file:///etc/containerpilot.json", \
-  "dnsmasq", "-k", "--address=/swim/192.168.99.100"]
+  "dnsmasq", "-k"]
